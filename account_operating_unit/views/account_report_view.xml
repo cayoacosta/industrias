@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Account Reports Configuration -->
+        <record id="view_account_financial_report_form_operating_unit" model="ir.ui.view">
+            <field name="name">account.financial.html.report.form.operating.unit</field>
+            <field name="model">account.financial.html.report</field>
+            <field name="inherit_id" ref="account_reports.view_account_financial_report_form" />
+            <field name="arch" type="xml">
+            	<field name="show_journal_filter" position="after">
+            		<field name="show_operating_units_filter" />
+            	</field>
+            </field>
+        </record>
+    </data>
+</odoo>
+    

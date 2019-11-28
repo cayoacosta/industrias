@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	
+	<template id="search_template_operating_unit">
+        <a type="button" class="dropdown-toggle" data-toggle="dropdown">
+            <span class="fa fa-book"/>
+            Operating Units:
+            <t t-set="selected_operating_units" t-value="', '.join(op_unit.get('code') for op_unit in options['operating_units'] if op_unit.get('selected'))"/>
+            <t t-if="selected_operating_units">
+                <t t-esc="selected_operating_units"/>
+            </t>
+            <t t-else="">
+                All
+            </t>
+        </a>
+        <div class="dropdown-menu o_filters_menu" role="menu">
+            <t t-foreach="options['operating_units']" t-as="j">
+                <t t-if="j.get('id') == 'divider'">
+                    <div role="separator" class="dropdown-divider"/>
+                    <b role="menuitem" class="ml4 dropdown-item-text"><t t-esc="j.get('name')"/></b>
+                    <div role="separator" class="dropdown-divider"/>
+                </t>
+                <t t-if="j.get('id') != 'divider'">
+                    <a role="menuitem" class="dropdown-item js_account_report_choice_filter" t-att-title="j.get('name')+ '-' + j.get('code')" t-att-data-id="j.get('id')" data-filter="operating_units"><t t-esc="j.get('name')"/></a>
+                </t>
+            </t>
+        </div>
+    </template>
+    
+    <template id="search_template_operating_units" inherit_id="account_reports.search_template">
+        <xpath expr="//div[hasclass('o_account_reports_filter_journals')]" position="after">
+        	<div class="btn-group o_dropdown o_account_reports_filter_operating_units" t-if="options.get('operating_units') not in [None,False]">
+          		<t t-call="account_operating_unit.search_template_operating_unit"/>
+      		</div>
+        </xpath>
+            
+        
+    </template>
+
+</odoo>
