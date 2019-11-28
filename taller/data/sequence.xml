@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="seq_ordenes_de_reparacion" model="ir.sequence">
+            <field name="name">Ordenes de Reparacion</field>
+            <field name="code">ordenes.de.reparacion</field>
+            <field name="prefix">ODR</field>
+            <field name="padding">6</field>
+            <field name="company_id" eval="False"/>
+        </record>
+		
+		<!-- Sequences for sale.order refacciones-->
+        <record id="seq_sale_order_refacciones" model="ir.sequence">
+            <field name="name">Sales Order refacciones</field>
+            <field name="code">sale.order.refacciones</field>
+            <field name="prefix">ORE</field>
+            <field name="padding">6</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        
+        <!-- Sequences for sale.order maquinaria-->
+        <record id="seq_sale_order_maquinaria" model="ir.sequence">
+            <field name="name">Sales Order maquinaria</field>
+            <field name="code">sale.order.maquinaria</field>
+            <field name="prefix">OMA</field>
+            <field name="padding">6</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </data>
+</odoo>

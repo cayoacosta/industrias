@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<record id="stock_quant_kanban_view_taller" model="ir.ui.view">
+        <field name="name">stock.quant.taller.kanban</field>
+        <field name="model">stock.quant</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <field name="id"/>
+                <field name="location_id"/>
+                <field name="lot_id"/>
+                <field name="quantity"/>
+                <field name="product_id"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <div class="o_kanban_image">
+                                <img t-att-src="kanban_image('product.product', 'image_small', record.product_id.raw_value)" alt="Product"/>
+                            </div>
+                            <div class="oe_kanban_details">
+                                <strong class="o_kanban_record_title">
+                                    <field name="product_id"/>
+                                    <!-- <small t-if="record.default_code.value">[<field name="default_code"/>]</small> -->
+                                </strong>
+                                <!-- <div t-if="record.product_variant_count.value &gt; 1" groups="product.group_product_variant">
+                                    <strong>
+                                        <t t-esc="record.product_variant_count.value"/> Variants
+                                    </strong>
+                                </div> -->
+                                <div name="tags"/>
+                                <ul>
+                                    <li>Location: <field name="location_id"></field></li>
+                                    <li>On hand: <field name="quantity"/> <field name="product_uom_id"/></li>
+                                    <li>Lot/Serial No.: <field name="lot_id"/></li>
+                                </ul>
+                                <div name="tags"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    
+	<record model="ir.actions.act_window" id="action_product_quant_maquinaria_taller"> <!-- Menu + python -->
+        <field name="name">Maquinaria</field>
+        <field name="res_model">stock.quant</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="view_id" ref="taller.stock_quant_kanban_view_taller"/>
+        <field name="context">{}</field>
+        <field name="domain">[('quantity','&gt;',0), ('lot_id', '!=', False), ('location_id.operating_unit_id', 'in', user.operating_unit_ids.ids)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">
+                No inventory found
+            </p><p>
+                This analysis gives you a fast overview on the current stock level of your products and their current inventory value.    
+            </p>
+        </field>
+    </record>
+    
+    
+    <menuitem id="menu_action_product_quant_maquinaria_taller" name="Maquinaria" action="action_product_quant_maquinaria_taller"
+        parent="stock.menu_stock_inventory_control" sequence="110"/>
+</odoo>

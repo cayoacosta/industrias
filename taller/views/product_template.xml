@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<record id="taller_product_template_inherit_form" model="ir.ui.view">
+         <field name="name">taller.product.template.inherite.form</field>
+         <field name="model">product.template</field>
+         <field name="inherit_id" ref="product.product_template_form_view"/>
+         <field name="arch" type="xml">
+         	<xpath expr="//div[@name='options']/div[last()]" position="after">
+                <div>
+                    <field name="mano_de_obra"/>
+                    <label for="mano_de_obra"/>
+                </div>
+            </xpath>
+         </field>
+    </record>
+    
+    
+    <record id="taller_product_template_only_form_view_inherit" model="ir.ui.view">
+         <field name="name">taller.product.template.only.form.view.inherite</field>
+         <field name="model">product.template</field>
+         <field name="inherit_id" ref="product.product_template_only_form_view"/>
+         <field name="arch" type="xml">
+         	<xpath expr="//field[@name='barcode']" position="after">
+                <field name="tipo_de_venta"/>
+            </xpath>
+         </field>
+    </record>
+    <!-- <record id="action_product_template_maquinaria_taller" model="ir.actions.act_window">
+        <field name="name">Maquinaria</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="view_type">form</field>
+        <field name="search_view_id" ref="stock.product_template_search_form_view_stock"/>
+        <field name="context">{"search_default_consumable": 1, 'default_type': 'product'}</field>
+        <field name="domain">[('qty_available','&gt;',0), ('tracking', 'in', [])]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new product
+            </p>
+        </field>
+    </record>
+    <menuitem id="menu_action_product_template_maquinaria_taller" name="Maquinaria" action="action_product_template_maquinaria_taller"
+        parent="taller.menu_root_taller_itadmin" sequence="20"/> -->
+        
+</odoo>

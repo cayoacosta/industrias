@@ -1,0 +1,8 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_model_taller_vehiculos_modelo,access.taller.vehiculos.modelo.model,model_taller_vehiculos_modelo,base.group_user,1,1,1,1
+access_model_taller_vehiculos_marca,access.taller.vehiculos.marca.model,model_taller_vehiculos_marca,base.group_user,1,1,1,1
+access_model_taller_vehiculos,access.taller.vehiculos.model,model_taller_vehiculos,base.group_user,1,1,1,1
+access_model_ordenes_de_reparacion,access.ordenes.de.reparacion.model,model_ordenes_de_reparacion,base.group_user,1,1,1,1
+access_model_refacciones_ordenes_de_reparacion,access.refacciones.ordenes.de.reparacion.model,model_refacciones_ordenes_de_reparacion,base.group_user,1,1,1,1
+access_model_mano_deobra_ordenes_de_reparacion,access.mano.deobra.ordenes.de.reparacion.model,model_mano_deobra_ordenes_de_reparacion,base.group_user,1,1,1,1
+access_model_otros_talleres_ordenes_de_reparacion,access.otros.talleres.ordenes.de.reparacion.model,model_otros_talleres_ordenes_de_reparacion,base.group_user,1,1,1,1

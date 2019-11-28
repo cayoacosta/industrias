@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<record id="view_taller_vehiculos_form" model="ir.ui.view">
+		<field name="name">view.taller.vehiculos.form</field>
+		<field name="model">taller.vehiculos</field>
+		<field name="arch" type="xml">
+			<form string="Taller Vehiculos">
+				<header>
+				</header>
+				<sheet>
+                	<label for="name" class="oe_edit_only"/>
+                	<h1><field name="name" /></h1>
+                    <group>
+                        <group>
+                            <field name="partner_id"  />
+                            <field name="marca" />
+                            <field name="modelo" />
+                        </group>
+                        <group>
+                        	<field name="numero_de_serie" />
+                        	<field name="placas" />
+                        	<field name="serie_de_motor" />
+                        	<field name="cantidad_horas" />
+                        </group>
+                    </group>
+				</sheet>
+			</form>
+		</field>
+	</record>
+    <record id="view_taller_vehiculos_tree" model="ir.ui.view">
+        <field name="name">view.taller.vehiculos.tree</field>
+        <field name="model">taller.vehiculos</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="marca"/>
+                <field name="modelo"/>
+                <field name="placas"/>
+                <field name="numero_de_serie"/>
+            </tree>
+        </field>
+    </record>
+    
+    <record id="view_taller_vehiculos_filter" model="ir.ui.view">
+        <field name="name">skip.installment.filter</field>
+        <field name="model">taller.vehiculos</field>
+        <field name="arch" type="xml">
+            <search>
+            	<field name="partner_id" operator="child_of"/>
+                <field name="name" filter_domain="[('name','ilike',self)]"/>
+            </search>
+        </field>
+    </record>
+    
+    <record model="ir.actions.act_window" id="action_taller_vehiculos">
+        <field name="name">Vehiculos</field>
+        <field name="res_model">taller.vehiculos</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p class="oe_view_nocontent_create">
+            	
+          </p>
+        </field>
+    </record>
+    
+    <menuitem name="Vehiculos" id="menu_action_taller_vehiculos" parent="taller.menu_main_first_taller_itadmin" action="action_taller_vehiculos" sequence="8"/>
+
+</odoo>

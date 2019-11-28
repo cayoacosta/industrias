@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<record id="taller_res_partner_inherit_form" model="ir.ui.view">
+         <field name="name">taller.res.partner.inherite.form</field>
+         <field name="model">res.partner</field>
+         <field name="inherit_id" ref="base.view_partner_form"/>
+         <field name="arch" type="xml">
+         	<xpath expr="//field[@name='vat']" position="before">
+                <field name="mecanico"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+            	<button name="action_view_vehiculos"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-user"
+                        attrs="{'invisible': [('vehiculos_count', '=', 0)]}">
+                        <field name="vehiculos_count" widget="statinfo" string="Vehiculos"/>
+                </button>
+            </xpath>
+            
+         </field>
+    </record>
+    
+    <record id="action_res_partner_form_taller_client" model="ir.actions.act_window">
+        <field name="name">Clientes</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="context">{"default_customer":1}</field>
+        <field name="domain">[('customer','=',1)]</field>
+        <field name="search_view_id" ref="base.view_res_partner_filter"/>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            Create a new cliente in your address book
+          </p><p>
+            Odoo helps you easily track all activities related to a cliente.
+          </p>
+        </field>
+    </record>
+    <menuitem name="Clientes" id="menu_taller_clientes_itadmin" parent="taller.menu_main_first_taller_itadmin" action="action_res_partner_form_taller_client" sequence="4"/>
+    
+    <record id="action_res_partner_form_taller_mecanicos" model="ir.actions.act_window">
+        <field name="name">Mecanicos</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="context">{"default_mecanico":1}</field>
+        <field name="domain">[('mecanico','=',1)]</field>
+        <field name="search_view_id" ref="base.view_res_partner_filter"/>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            Create a new mecanico in your address book
+          </p><p>
+            Odoo helps you easily track all activities related to a mecanico.
+          </p>
+        </field>
+    </record>
+    <menuitem name="Mecanico" id="menu_taller_mecanico_itadmin" parent="taller.menu_main_first_taller_itadmin" action="action_res_partner_form_taller_mecanicos" sequence="6"/>
+</odoo>

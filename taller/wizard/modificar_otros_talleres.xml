@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_modificar_otros_talleres_wizard_form" model="ir.ui.view">
+            <field name="name">Modificar refacciones tree</field>
+            <field name="model">modificar.otros.talleres.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Modificar" >
+                	<field name='reparacion_id' invisible="1" />
+                	<field name='company_id' invisible="1" />
+                	<field name="line_ids" >
+                		<tree editable="bottom">
+                			<field
+                                name="product_id"
+                                required="1"
+                                force_save="1"
+                                context="{
+                                    'quantity': product_uom_qty,
+                                    'uom':product_uom,
+                                    'company_id': parent.company_id,
+                                    'default_lst_price': price_unit,
+                                    'default_description_sale': name
+                                }"
+                            />
+                            <field name="name" widget="section_and_note_text"/>
+                            <field name="proveedor_id" context="{'default_proveedor':1}"/>
+                            <field name="costo_proveedor"/>
+                            <field
+                                name="product_uom_qty"
+                                context="{
+                                    'partner_id': proveedor_id,
+                                    'quantity': product_uom_qty,
+                                    'uom': product_uom,
+                                    'company_id': parent.company_id
+                                }"
+                            />
+                            <field
+                                name="product_uom"
+                                force_save="1"
+                                context="{'company_id': parent.company_id}"
+                                groups="uom.group_uom"
+                                options='{"no_open": True}'
+                            />
+                            <field name='pct_percent' />
+                            <field name="price_unit" />
+                            <field
+                                name="tax_id"
+                                widget="many2many_tags"
+                                options="{'no_create': True}"
+                                domain="[('type_tax_use','=','sale'),('company_id','=',parent.company_id)]"
+                            />
+                            <field name="price_subtotal" />
+                            
+	            		</tree>	
+                	</field>
+                	<footer>
+                        <button name="action_create" string="Actualizar" type="object" class="oe_highlight"/> 
+                        <button string="Cancel" class="oe_highlight" special="cancel" />
+                    </footer>
+               </form>
+            </field>
+        </record>
+		<record id="action_modificar_otros_talleres_wizard" model="ir.actions.act_window">
+            <field name="name">Modificar otros talleres</field>
+            <field name="res_model">modificar.otros.talleres.wizard</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field eval="view_modificar_otros_talleres_wizard_form" name="view_id"/>
+        </record>
+    </data>
+</odoo>

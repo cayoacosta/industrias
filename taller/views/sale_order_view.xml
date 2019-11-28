@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<!-- Apply Domain on Warehouse ID field -->
+	<record id="taller_sale_order_warehouse_id_domain" model="ir.ui.view">
+         <field name="name">taller.sale.order.inherit.warehouse.id.domain</field>
+         <field name="model">sale.order</field>
+         <field name="inherit_id" ref="sale_stock.view_order_form_inherit_sale_stock"/>
+		 <field name="priority">150</field>         
+         <field name="arch" type="xml">
+			<field name="warehouse_id" position="after">
+            	<field name="tipo" invisible="1" />
+            	<field name="diario" domain="[('type','=','sale'),('tipo','=',tipo)]"/>
+			</field>
+            <!-- <field name="warehouse_id" position="attributes">
+				<attribute name="domain">[('tipo','=',tipo)]</attribute>
+			</field> -->            	
+         </field>
+    </record>    
+    
+    <record id="taller_sale_order_inherit_form" model="ir.ui.view">
+         <field name="name">taller.sale.order.inherit.form</field>
+         <field name="model">sale.order</field>
+         <field name="inherit_id" ref="sale.view_order_form"/>
+         <field name="arch" type="xml">
+         	<xpath expr="//field[@name='require_payment']" position="after">
+                <field name="orden_de_reparacion"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/form/group/group/field[@name='product_id']" position='attributes'>
+            	<attribute name='context'>{'default_tipo_de_venta': parent.tipo,'partner_id':parent.partner_id, 'quantity':product_uom_qty, 'pricelist':parent.pricelist_id, 'uom':product_uom, 'company_id': parent.company_id}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/tree/field[@name='product_id']" position='attributes'>
+            	<attribute name="context">
+            		{
+                        'default_tipo_de_venta': parent.tipo,
+                        'partner_id': parent.partner_id,
+                        'quantity': product_uom_qty,
+                        'pricelist': parent.pricelist_id,
+                        'uom':product_uom,
+                        'company_id': parent.company_id,
+                        'default_lst_price': price_unit,
+                        'default_description_sale': name
+                    }
+            	</attribute>
+            </xpath>
+         </field>
+    </record>
+    <!-- Menu and Actions for New models Refacciones and Maquinaria -->
+        <record id="action_sales_refacciones" model="ir.actions.act_window">
+            <field name="name">Ventas de Refacciones</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">sale.order</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="sale.view_quotation_tree_with_onboarding"/>
+            <field name="view_mode">tree,kanban,form,calendar,pivot,graph,activity</field>
+            <field name="search_view_id" ref="sale.sale_order_view_search_inherit_quotation"/>
+            <field name="context">{'default_tipo':'refacciones'}</field>
+            <field name="domain">[('tipo','=','refacciones')]</field>
+        </record>
+        
+        <record id="action_sales_maquinaria" model="ir.actions.act_window">
+            <field name="name">Ventas de Maquinaria</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">sale.order</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="sale.view_quotation_tree_with_onboarding"/>
+            <field name="view_mode">tree,kanban,form,calendar,pivot,graph,activity</field>
+            <field name="search_view_id" ref="sale.sale_order_view_search_inherit_quotation"/>
+			<field name="context">{'default_tipo':'maquinaria'}</field>
+            <field name="domain">[('tipo','=','maquinaria')]</field>
+        </record>
+        
+        <!-- Override Quotation Action to see only sales with tipo Taller -->
+        <record id="sale.action_quotations_with_onboarding" model="ir.actions.act_window">
+            <field name="name">Ventas de taller</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">sale.order</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="sale.view_quotation_tree_with_onboarding"/>
+            <field name="view_mode">tree,kanban,form,calendar,pivot,graph,activity</field>
+            <field name="search_view_id" ref="sale.sale_order_view_search_inherit_quotation"/>
+            <field name="context">{'search_default_my_quotation': 1, 'default_tipo':'taller'}</field>
+            <field name="domain">[('tipo','not in',['refacciones','maquinaria'])]</field>
+            <field name="help" type="html">
+              <p class="o_view_nocontent_smiling_face">
+                Create a new quotation, the first step of a new sale!
+              </p><p>
+                Once the quotation is confirmed by the customer, it becomes a sales order.<br/> You will be able to create an invoice and collect the payment.
+              </p>
+            </field>
+        </record>
+        
+        <record id="sale.action_orders" model="ir.actions.act_window">
+            <field name="name">Sales Orders</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">sale.order</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,kanban,form,calendar,pivot,graph,activity</field>
+            <field name="search_view_id" ref="sale.sale_order_view_search_inherit_sale"/>
+            <field name="context">{'default_tipo':'taller'}</field>
+            <field name="domain">[('state', 'not in', ('draft', 'sent', 'cancel')),('tipo','not in',['refacciones','maquinaria'])]</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create a new quotation, the first step of a new sale!
+                </p><p>
+                    Once the quotation is confirmed, it becomes a sales order.<br/> You will be able to create an invoice and collect the payment.
+                </p>
+            </field>
+        </record>                
+        
+		<menuitem id="menu_sale_refacciones"
+                action="action_sales_refacciones"
+                parent="sale.sale_order_menu"
+                sequence="100" groups="sales_team.group_sale_salesman"/>
+
+        <menuitem id="menu_sale_maquinaria"
+                action="action_sales_maquinaria"
+                parent="sale.sale_order_menu"
+                sequence="150" groups="sales_team.group_sale_salesman"/>                	            
+	    
+</odoo>

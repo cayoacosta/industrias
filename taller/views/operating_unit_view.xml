@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<record id="taller_operating_unit_inherit_form" model="ir.ui.view">
+         <field name="name">taller.operating.unit.inherite.form</field>
+         <field name="model">operating.unit</field>
+         <field name="inherit_id" ref="operating_unit.view_operating_unit_form"/>
+         <field name="arch" type="xml">
+         	<xpath expr="//field[@name='partner_id']" position="after">
+                <field name="dest_location_id"/>
+                <field name="location_id"/>
+                <field name="warehouse_id"/>
+            </xpath>
+         </field>
+    </record>
+</odoo>

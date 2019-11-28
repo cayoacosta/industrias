@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<record id="view_ordenes_de_reparacion_tree" model="ir.ui.view">
+        <field name="name">ordenes.de.reparacion.tree</field>
+        <field name="model">ordenes.de.reparacion</field>
+        <field name="arch" type="xml">
+            <tree string="Ordenes de reparación" >
+                <field name="name" string="Número de reparación"/>
+                <field name="fecha" />
+                <field name="partner_id" />
+                <field name="operating_unit_id" />
+                <field name="vehiculo_id" />
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+    
+    <record id="act_ordenes_de_reparacion_2_sale_order" model="ir.actions.act_window">
+        <field name="name">Quotations and Sales</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form,graph</field>
+        <field name="context">{'search_default_ordenes_id': active_id,'default_ordenes_id': active_id}</field>
+        <field name="domain">[('ordenes_id', '=', active_id)]</field>
+        <field name="groups_id" eval="[(4, ref('sales_team.group_sale_salesman'))]"/>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            Create a new quotation, the first step of a new sale!
+          </p><p>
+            Once the quotation is confirmed by the customer, it becomes a sales order.<br/> You will be able to create an invoice and collect the payment.
+          </p>
+        </field>
+    </record>
+    <record id="view_ordenes_de_reparacion_form" model="ir.ui.view">
+        <field name="name">ordenes.de.reparacion.form</field>
+        <field name="model">ordenes.de.reparacion</field>
+        <field name="arch" type="xml">
+            <form string="Ordenes de reparación" class="o_sale_order">
+            <header>
+            	<button name="action_ordenes_de_reparacion_send" string="Enviar por correo-e" type="object" class="btn-primary"/>
+            	<button name="action_confirmar" string="Confirmar" type="object" states="Presupuestada" class="btn-primary"/>
+            	<button name="action_carrar" string="Cerrar" type="object" states="Confirmada" class="btn-primary"/>
+            	<button name="action_reabrir" string="Reabrir" type="object" states="Cerrada" class="btn-primary"/>
+            	<button name="action_crear_venta" string="Crear venta" type="object" attrs="{'invisible': ['|', ('state', '!=', 'Cerrada'), ('sale_order_count', '=', 1)]}" class="btn-primary" confirm="¿Está seguro que quiere crear el pedido de venta?."/>
+            	<button name="action_modificar_refacciones" string="Modificar refacciones" type="object" class="btn-primary" attrs="{'invisible':[('state', 'not in', ('Confirmada'))]}"/>
+            	<button name="action_modificar_mano_de_obra" string="Modificar mano de obra" type="object" class="btn-primary" attrs="{'invisible':[('state', 'not in', ('Confirmada'))]}"/>
+            	<button name="%(taller.action_modificar_otros_talleres_wizard)s" string="Modificar otros talleres" context="{'default_reparacion_id':active_id}" type="action" class="btn-primary" attrs="{'invisible':[('state', 'not in', ('Confirmada'))]}"/>
+            	<button name="%(taller.action_cancelar_otros_talleres_wizard)s" string="Cancelar otros talleres" context="{'default_reparacion_id':active_id}" type="action" class="btn-primary" attrs="{'invisible':[('state', 'not in', ('Confirmada'))]}"/>
+            	<button name="action_cancelar" string="Cancelar" type="object" attrs="{'invisible':[('state', 'not in', ('Confirmada', 'Cerrada'))]}" class="btn-primary"/>
+            	<field name="state" widget="statusbar" statusbar_visible="Presupuestada,Confirmada,Cerrada"/>
+            </header>
+            <sheet>
+                <div class="oe_button_box" name="button_box">
+                	<field name="picking_ids" invisible="1"/>
+                    <button type="object"
+                        name="action_view_delivery"
+                        class="oe_stat_button"
+                        icon="fa-truck"
+                        attrs="{'invisible': [('delivery_count', '=', 0)]}" groups="base.group_user">
+                        <field name="delivery_count" widget="statinfo" string="Internal Transfer"/>
+                    </button>
+                    <button type="object"
+	                    name="action_view_in_picking"
+	                    class="oe_stat_button"
+	                    icon="fa-truck" attrs="{'invisible':[('in_picking_ids','=',[])]}">
+	                    <field name="in_picking_count" widget="statinfo" string="Receipt" help="Incoming Shipments"/>
+	                    <field name="in_picking_ids" invisible="1"/>
+	                </button>
+	                <button class="oe_stat_button" name="action_view_in_purchase_orders" type="object"
+                        groups="purchase.group_purchase_user"
+                        attrs="{'invisible': [('purchase_count', '=', 0)]}" icon="fa-shopping-cart">
+                        <field string="Purchases" name="purchase_count" widget="statinfo"/>
+                    </button>
+                    <button class="oe_stat_button" type="action" name="%(taller.act_ordenes_de_reparacion_2_sale_order)d" 
+                        groups="sales_team.group_sale_salesman"
+                        attrs="{'invisible': [('sale_order_count', '=', 0)]}"
+                        icon="fa-usd">
+                        <field string="Sales" name="sale_order_count" widget="statinfo"/>
+                    </button>
+                </div>
+                <div class="oe_title">
+                    <label for="name" />
+                    <h1>
+                        <field name="name" readonly="1"/>
+                    </h1>
+                </div>
+                <group>
+                    <group>
+                        <field name="partner_id" required="1" domain="[('customer','=',True)]" context="{'search_default_customer':1}" options='{"always_reload": True}' 
+							    attrs="{'readonly' : [('state', 'not in',('Presupuestada'))]}"/> <!-- widget="res_partner_many2one" , 'show_address': 1, 'show_vat': True -->
+                        <field name="vehiculo_id" domain="[('partner_id','=',partner_id)]" context="{'default_partner_id':partner_id}" 
+							   attrs="{'readonly' : [('state', 'not in',('Presupuestada'))]}"/>
+                        <!-- <field name="mecanico_id" context="{'default_mecanico':1}"/> -->
+                    </group>
+                    <group>
+                        <field name="fecha" attrs="{'readonly' : [('state', 'not in',('Presupuestada'))]}"/>
+                        <field name="total_orden_de_reparacion" />
+                        <field name="orden_de_servicio_de_garantia" attrs="{'readonly' : [('state', 'not in',('Presupuestada'))]}"/>
+                        <field name="company_id" options="{'no_create': True}" groups="base.group_multi_company"/>
+                    </group>
+                </group>
+                <notebook>
+                    <page string="Refacciones" name="refacciones”">
+                        <field name="refacciones_ids" mode="tree,kanban" attrs="{'readonly' : [('state', 'not in',('Presupuestada'))]}">
+                            <form>
+                                <!-- <field name="sequence" invisible="1"/> -->
+                                <group>
+                                    <group>
+                                        <field name="product_id"
+                                            context="{'partner_id':parent.partner_id, 'quantity':product_uom_qty, 'uom':product_uom, 'company_id': parent.company_id}"
+                                            force_save="1"
+                                           />
+                                        <field name="price_total" invisible="1"/>
+                                        <field name="price_tax" invisible="1"/>
+                                        <field name="price_subtotal" invisible="1"/>
+                                        <label for="product_uom_qty" />
+                                        <div>
+                                            <field
+                                                context="{'partner_id':parent.partner_id, 'quantity':product_uom_qty, 'uom':product_uom, 'uom_qty_change':True, 'company_id': parent.company_id}"
+                                                name="product_uom_qty" class="oe_inline"/>
+                                            <field
+                                                name="product_uom"
+                                                force_save="1"
+                                                groups="uom.group_uom"
+                                                class="oe_inline oe_no_button"
+                                            />
+                                        </div>
+                                        <field name="price_unit"/>
+                                        <!-- <field name="sequence" invisible="1"/> -->
+                                    </group>
+                                    <group>
+                                        <field name="tax_id" widget="many2many_tags" options="{'no_create': True}" context="{'search_view_ref': 'account.account_tax_view_search'}" domain="[('type_tax_use','=','sale'),('company_id','=',parent.company_id)]"/>
+                                    </group>
+                                </group>
+                                <label for="name" string="Description" />
+                                <field name="name"/>
+                            </form>
+                            <tree string="Refacciones" editable="bottom">
+                                <!-- <field name="sequence" widget="handle" /> -->
+                                <field
+                                    name="product_id"
+                                    required="1"
+                                    force_save="1"
+                                    context="{
+                                        'partner_id': parent.partner_id,
+                                        'quantity': product_uom_qty,
+                                        'uom':product_uom,
+                                        'company_id': parent.company_id,
+                                        'default_lst_price': price_unit,
+                                        'default_description_sale': name
+                                    }"
+                                />
+                                <field name="name" widget="section_and_note_text"/>
+                                <field
+                                    name="product_uom_qty"
+                                    context="{
+                                        'partner_id': parent.partner_id,
+                                        'quantity': product_uom_qty,
+                                        'uom': product_uom,
+                                        'company_id': parent.company_id
+                                    }"
+                                />
+                                <field
+                                    name="product_uom"
+                                    force_save="1"
+                                    context="{'company_id': parent.company_id}"
+                                    groups="uom.group_uom"
+                                    options='{"no_open": True}'
+                                />
+                                <field name="price_unit" />
+                                <field
+                                    name="tax_id"
+                                    widget="many2many_tags"
+                                    options="{'no_create': True}"
+                                    domain="[('type_tax_use','=','sale'),('company_id','=',parent.company_id)]"
+                                />
+                                <field name="price_subtotal" widget="monetary" />
+                                <field name="price_total" invisible="1"/>
+                                <field name="currency_id" invisible="1"/>
+                                <field name="price_tax" invisible="1"/>
+                            </tree>
+                        </field>
+                        <group class="oe_subtotal_footer oe_right" colspan="2" name="refacciones_total">
+                            <field name="amount_untaxed_refacciones" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                            <field name="amount_tax_refacciones" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                            <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                <label for="amount_total_refacciones" />
+                            </div>
+                            <field name="amount_total_refacciones" nolabel="1" class="oe_subtotal_footer_separator" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                        </group>
+                        <field name="note" class="oe_inline" placeholder="Notas... " attrs="{'readonly' : [('state', 'not in',('Presupuestada', 'Confirmada'))]}"/>
+                        <div class="oe_clear"/>
+                    </page>
+                    <page string="Mano de obra" name="mano_de_obra_page">
+                        <field name="mano_de_obra_ids" mode="tree,kanban" attrs="{'readonly' : [('state', 'not in',('Presupuestada'))]}">
+                            <form>
+                                <!-- <field name="sequence" invisible="1"/> -->
+                                <group>
+                                    <group>
+                                        <field name="mecanico_id" context="{'default_mecanico':1}"/>
+                                        <field name="product_id" domain="[('mano_de_obra', '=', True)]"
+                                            context="{'default_mano_de_obra':True, 'partner_id':parent.partner_id, 'quantity':product_uom_qty, 'uom':product_uom, 'company_id': parent.company_id}"
+                                            force_save="1"
+                                           />
+                                        <field name="price_total" invisible="1"/>
+                                        <field name="price_tax" invisible="1"/>
+                                        <field name="price_subtotal" invisible="1"/>
+                                        <label for="product_uom_qty" />
+                                        <div>
+                                            <field
+                                                context="{'partner_id':parent.partner_id, 'quantity':product_uom_qty, 'uom':product_uom, 'uom_qty_change':True, 'company_id': parent.company_id}"
+                                                name="product_uom_qty" class="oe_inline"/>
+                                            <field
+                                                name="product_uom"
+                                                force_save="1"
+                                                groups="uom.group_uom"
+                                                class="oe_inline oe_no_button"
+                                            />
+                                        </div>
+                                        <field name="price_unit"/>
+                                        <!-- <field name="sequence" invisible="1"/> -->
+                                    </group>
+                                    <group>
+                                        <field name="tax_id" widget="many2many_tags" options="{'no_create': True}" context="{'search_view_ref': 'account.account_tax_view_search'}" domain="[('type_tax_use','=','sale'),('company_id','=',parent.company_id)]"/>
+                                    </group>
+                                </group>
+                                <label for="name" string="Description" />
+                                <field name="name"/>
+                            </form>
+                            
+                            <tree string="Refacciones" editable="bottom">
+                                <!-- <field name="sequence" widget="handle" /> -->
+                                <field
+                                    name="product_id"
+                                    required="1"
+                                    force_save="1"
+                                    context="{
+                                        'partner_id': parent.partner_id,
+                                        'quantity': product_uom_qty,
+                                        'uom':product_uom,
+                                        'company_id': parent.company_id,
+                                        'default_lst_price': price_unit,
+                                        'default_description_sale': name,
+                                        'default_mano_de_obra':True,
+                                    }"
+                                />
+                                <field name="name" widget="section_and_note_text"/>
+                                <field name="mecanico_id" context="{'default_mecanico':1}"/>
+                                <field
+                                    name="product_uom_qty"
+                                    context="{
+                                        'partner_id': parent.partner_id,
+                                        'quantity': product_uom_qty,
+                                        'uom': product_uom,
+                                        'company_id': parent.company_id
+                                    }"
+                                />
+                                <field name="detalle" />
+                                <field
+                                    name="product_uom"
+                                    force_save="1"
+                                    context="{'company_id': parent.company_id}"
+                                    groups="uom.group_uom"
+                                    options='{"no_open": True}'
+                                />
+                                <field name="price_unit" />
+                                <field
+                                    name="tax_id"
+                                    widget="many2many_tags"
+                                    options="{'no_create': True}"
+                                    domain="[('type_tax_use','=','sale'),('company_id','=',parent.company_id)]"
+                                />
+                                <field name="price_subtotal" widget="monetary" />
+                                <field name="price_total" invisible="1"/>
+                                <field name="currency_id" invisible="1"/>
+                                <field name="price_tax" invisible="1"/>
+                            </tree>
+                        </field>
+                        <group class="oe_subtotal_footer oe_right" colspan="2" name="refacciones_total">
+                            <field name="amount_untaxed_mano" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                            <field name="amount_tax_mano" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                            <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                <label for="amount_total_mano" />
+                            </div>
+                            <field name="amount_total_mano" nolabel="1" class="oe_subtotal_footer_separator" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                        </group>
+                        <div class="oe_clear"/>
+                    </page>
+                    <page string="Otros talleres" name="otros_talleres_page">
+                        <field name="otros_talleres_ids" mode="tree,kanban" attrs="{'readonly' : [('state', 'not in',('Presupuestada'))]}">
+                            <form>
+                                <!-- <field name="sequence" invisible="1"/> -->
+                                <group>
+                                    <group>
+                                        <field name="product_id"
+                                            context="{'partner_id':parent.partner_id, 'quantity':product_uom_qty, 'uom':product_uom, 'company_id': parent.company_id}"
+                                            force_save="1"
+                                           />
+                                        <field name="price_total" invisible="1"/>
+                                        <field name="price_tax" invisible="1"/>
+                                        <field name="price_subtotal" invisible="1"/>
+                                        <label for="product_uom_qty" />
+                                        <div>
+                                            <field
+                                                context="{'partner_id':parent.partner_id, 'quantity':product_uom_qty, 'uom':product_uom, 'uom_qty_change':True, 'company_id': parent.company_id}"
+                                                name="product_uom_qty" class="oe_inline"/>
+                                            <field
+                                                name="product_uom"
+                                                force_save="1"
+                                                groups="uom.group_uom"
+                                                class="oe_inline oe_no_button"
+                                            />
+                                        </div>
+                                        <field name="price_unit"/>
+                                        <!-- <field name="sequence" invisible="1"/> -->
+                                    </group>
+                                    <group>
+                                        <field name="tax_id" widget="many2many_tags" options="{'no_create': True}" context="{'search_view_ref': 'account.account_tax_view_search'}" domain="[('type_tax_use','=','sale'),('company_id','=',parent.company_id)]"/>
+                                    </group>
+                                </group>
+                                <label for="name" string="Description" />
+                                <field name="name"/>
+                            </form>
+                            <tree string="Refacciones" editable="bottom">
+                                
+                                <!-- <field name="sequence" widget="handle" /> -->
+                                <field
+                                    name="product_id"
+                                    required="1"
+                                    force_save="1"
+                                    context="{
+                                        'partner_id': parent.partner_id,
+                                        'quantity': product_uom_qty,
+                                        'uom':product_uom,
+                                        'company_id': parent.company_id,
+                                        'default_lst_price': price_unit,
+                                        'default_description_sale': name
+                                    }"
+                                />
+                                <field name="name" widget="section_and_note_text"/>
+                                <field name="proveedor_id" context="{'default_proveedor':1}"/>
+                                <field name="costo_proveedor"/>
+                                <field
+                                    name="product_uom_qty"
+                                    context="{
+                                        'partner_id': parent.partner_id,
+                                        'quantity': product_uom_qty,
+                                        'uom': product_uom,
+                                        'company_id': parent.company_id
+                                    }"
+                                />
+                                <field
+                                    name="product_uom"
+                                    force_save="1"
+                                    context="{'company_id': parent.company_id}"
+                                    groups="uom.group_uom"
+                                    options='{"no_open": True}'
+                                />
+                                <field name='pct_percent' />
+                                <field name="price_unit" />
+                                <field
+                                    name="tax_id"
+                                    widget="many2many_tags"
+                                    options="{'no_create': True}"
+                                    domain="[('type_tax_use','=','sale'),('company_id','=',parent.company_id)]"
+                                />
+                                <field name="price_subtotal" widget="monetary" />
+                                <field name="price_total" invisible="1"/>
+                                <field name="currency_id" invisible="1"/>
+                                <field name="price_tax" invisible="1"/>
+                            </tree>
+                        </field>
+                        <group class="oe_subtotal_footer oe_right" colspan="2" name="refacciones_total">
+                            <field name="amount_untaxed_otros" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                            <field name="amount_tax_otros" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                            <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                <label for="amount_total_otros" />
+                            </div>
+                            <field name="amount_total_otros" nolabel="1" class="oe_subtotal_footer_separator" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                        </group>
+                        <div class="oe_clear"/>
+                    </page>
+                    <page string="Otra informacion" name="Otra_informacion">
+                    	<group>
+	                    	<group>
+	                    		<field name="operating_unit_id" options="{'no_create': True}" domain = "[('company_id','=', company_id)]"
+	                    			groups="operating_unit.group_multi_operating_unit"/>
+	                    		<field name="warehouse_id" />
+	                    		<field name="dest_location_id" />
+	                    	</group>
+	                    	<group>
+	                    		<field name="user_id" />
+	                    		<field name="team_id" />
+	                    	</group>
+                    	</group>
+                    </page>
+                </notebook>
+            </sheet>
+            <div class="oe_chatter">
+                <field name="message_follower_ids" widget="mail_followers"/>
+                <field name="activity_ids" widget="mail_activity"/>
+                <field name="message_ids" widget="mail_thread"/>
+            </div>
+            </form>
+        </field>
+    </record>
+    
+    <record id="view_ordenes_de_reparacion_filter" model="ir.ui.view">
+        <field name="name">ordenes.de.reparacion.list.select</field>
+        <field name="model">ordenes.de.reparacion</field>
+        <!-- <field name="priority" eval="15"/> -->
+        <field name="arch" type="xml">
+            <search string="Search Ordenes">
+                <field name="name" filter_domain="['|',('name','ilike',self),('partner_id','child_of',self)]"/>
+                <field name="partner_id" operator="child_of"/>
+                <field name="vehiculo_id" operator="child_of"/>
+                <!-- <field name="mecanico_id"/> -->
+                
+                <field name="refacciones_ids" string="Product" filter_domain="[('refacciones_ids.product_id', 'ilike', self)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="client" string="Clientes" domain="[]" context="{'group_by':'partner_id'}"/>
+                    <!-- <filter name="mecanico_id" string="Mecanico" domain="[]" context="{'group_by':'mecanico_id'}"/> -->
+                    <filter name="vehiculo_id" string="Vehiculo" domain="[]" context="{'group_by':'vehiculo_id'}"/>
+                    <filter string="Fecha" name="order_month" domain="[]" context="{'group_by':'fecha'}"/>
+                </group>
+           </search>
+        </field>
+    </record>
+    
+    <record id="action_ordenes_de_reparacion" model="ir.actions.act_window">
+        <field name="name">Ordenes de reparación</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">ordenes.de.reparacion</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_ordenes_de_reparacion_filter"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new Ordenes de reparacion!
+            </p>
+        </field>
+    </record>
+    <menuitem name="Ordenes de reparación" id="menu_action_ordenes_de_reparacion" parent="taller.menu_main_first_taller_itadmin" action="action_ordenes_de_reparacion" sequence="2"/>
+        
+</odoo>

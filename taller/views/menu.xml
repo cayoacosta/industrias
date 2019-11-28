@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	<menuitem
+          name="Taller"
+          id="menu_root_taller_itadmin"
+          sequence="15"
+      />
+      <menuitem id="menu_main_first_taller_itadmin" name="Taller" parent="menu_root_taller_itadmin" />
+</odoo>
