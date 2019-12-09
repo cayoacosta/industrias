@@ -466,7 +466,9 @@ class PortalSAT(object):
         post['ctl00$ScriptManager1'] = sm
         return post
 
-    def _get_captcha(self):
+    def _get_captcha(self, from_script):
+        from .captcha import resolve
+
         URL_LOGIN = 'https://cfdiau.sat.gob.mx/nidp/wsfed/ep?id=SATUPCFDiCon&sid=0&option=credential&sid=0'
         REFERER = 'https://cfdiau.sat.gob.mx/nidp/wsfed_redir_cont_portalcfdi.jsp?wa=wsignin1.0&wtrealm={}'
         result = self._session.get(self.URL_MAIN)
@@ -478,13 +480,11 @@ class PortalSAT(object):
         self._session.headers['User-Agent'] = self.BROWSER
         self._session.headers['Referer'] = REFERER.format(url_redirect)
         result = self._response(URL_LOGIN, 'post')
-    
-        parser = ImageCaptcha()
-        parser.feed(result)
-        im = Image.open(BytesIO(base64.b64decode(parser.image)))
-        im.show()
-        return input('Captcha: ')
 
+        url = 'https://cfdiau.sat.gob.mx/nidp/jcaptcha.jpg'
+        result = self._session.get(url, timeout=TIMEOUT)
+
+        return resolve(result.content, from_script)
 
     def login(self, ciec, from_script):
         HOST = 'cfdicontribuyentes.accesscontrol.windows.net'
@@ -494,7 +494,7 @@ class PortalSAT(object):
         msg = 'Identificandose en el SAT'
         _logger.info(msg)
 
-        captcha = self._get_captcha()
+        captcha = self._get_captcha(from_script)
         if not captcha:
             return False
 
@@ -503,7 +503,7 @@ class PortalSAT(object):
             'Ecom_User_ID': self._rfc,
             'Ecom_Password': ciec,
             'submit': 'Enviar',
-            'userCaptcha': captcha,
+            'jcaptcha': captcha,
         }
         headers = self._get_headers(self.HOST, self.REFERER)
         response = self._response(self.URL_FORM, 'post', headers, data)
@@ -524,9 +524,6 @@ class PortalSAT(object):
             'https://portalcfdi.facturaelectronica.sat.gob.mx/', 'post', data=data))
         data = self._read_form(self._response(
             'https://portalcfdi.facturaelectronica.sat.gob.mx/', data=data))
-        
-        if not data:
-            return False
 
         # Consulta
         response = self._response(self.URL_CONSULTA, 'post', headers, data)
@@ -859,7 +856,7 @@ class PortalSAT(object):
                 invoice_content.update(data)
         return invoice_content
 
-    def search(self, opt,download_option='both'):
+    def search(self, opt):
         filters_e = ()
         filters_r = ()
 
@@ -885,18 +882,11 @@ class PortalSAT(object):
             return self._search_by_uuid(filters_r), {}
         
         #Uncomment if you need to download Receiptor/Customer invoices.
-        invoice_content_e, invoice_content_r = {}, {}
-        if download_option=='both':
-            filters_e = self._get_filters(opt, True)
-            invoice_content_e = self._search_emitidas(filters_e)
-            filters_r = self._get_filters(opt, False)
-            invoice_content_r = self._search_recibidas(filters_r)
-        elif download_option=='supplier':
-            filters_r = self._get_filters(opt, False)
-            invoice_content_r = self._search_recibidas(filters_r)
-        elif download_option=='customer':
-            filters_e = self._get_filters(opt, True)
-            invoice_content_e = self._search_emitidas(filters_e)    
+        filters_e = self._get_filters(opt, True)
+        filters_r = self._get_filters(opt, False)
+        invoice_content_e = self._search_emitidas(filters_e)
+        invoice_content_r = self._search_recibidas(filters_r)
+        
         return invoice_content_r, invoice_content_e
     
 
@@ -921,27 +911,7 @@ class PortalSAT(object):
                 if data and type(data)==dict:
                     invoices_content.update(data)
         return invoices_content
-    
-    def _parse_xml(self, xml_content):
-        try:
-            #xml = ET.parse(path).getroot()
-            test = 'Ya no puedes descargar'
-            if test in xml_content.decode(): #ET.tostring(xml).decode():
-                #Path(path).unlink()
-                _logger.info(test)
-                return False
-            if b'xmlns:schemaLocation' in xml_content:
-                xml_content = xml_content.replace(b'xmlns:schemaLocation', b'xsi:schemaLocation')
-            tree = etree.fromstring(xml_content)       
-            if not tree.attrib:
-                return False
- 
-            return True
-        except Exception as e:
-            msg = 'Error al parsear: {}'.format(xml_content)
-            _logger.info(msg)
-        return False
-    
+
     def _thread_download(self, invoices, folder, filters):
 #         threads = []
 #         paths = {}
@@ -964,27 +934,9 @@ class PortalSAT(object):
                 if content:
                     invoice_content.update({uuid: [values, content]})
                 current += 1
-            
-            #~ Valid download
-            not_saved = []
-            uuids = []
-            for uuid, values in for_download:
-                #p = paths[uuid]
-                invoice_data = invoice_content.get(uuid)
-                xml_content = invoice_data[1]
-                if self._parse_xml(xml_content):
-                    uuids.append(uuid)
-                else:
-                    not_saved.append((uuid, values))
-            
-            for_download = not_saved[:]
-            current = 1
-            total = len(for_download)
-            if not for_download:
-                break
-#             if len(invoice_content) == len(for_download):
-#                 break
 
+            if len(invoice_content) == len(for_download):
+                break
         if total:
             msg = '{} documentos por descargar en: {}'.format(total, str(filters))
             _logger.info(msg)
