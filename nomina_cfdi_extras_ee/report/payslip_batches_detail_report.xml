@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data>
+		<report string="Listado de nomina" 
+			id="action_report_payslip_batches_detail"
+			model="hr.payslip.run" report_type="qweb-pdf"
+			name="nomina_cfdi_extras_ee.report_payslip_batches_detail" 
+			file="nomina_cfdi_extras_ee.report_payslip_batches_detail" 
+			paperformat="nomina_cfdi_extras_ee.paperformat_landscape_Payslip_batch"/>
+	</data>
+	<template id="report_payslip_batches_detail">
+		<t t-call="web.html_container">
+		<t t-foreach="docs" t-as="o">
+			<t t-call="web.internal_layout">
+				<div class="page">
+					<div class="oe_structure" />
+					<div class="row">
+						<t t-set="all_col" t-value="o.get_all_columns()" />
+						<t t-set="all_col_dict" t-value="all_col[0]" />
+						<t t-set="all_col_list" t-value="all_col[1]" />
+						<t t-set="col_total" t-value="3+len(all_col_list)"/>
+						<table class="table table-condensed table table-striped">
+							<thead>
+								<tr>
+									<th>Cod</th>
+									<th>Empleado</th>
+									<th>Dias Pag</th>
+									<t t-foreach="all_col_list" t-as="col">
+										<th><t t-esc="all_col_dict[col]"/></th>
+									</t>
+								</tr>
+							</thead>
+							
+							
+							<t t-set="dept" t-value="o.get_department()[0]"/>
+							<t t-set="slips" t-value="o.get_payslip_group_by_department()[0]"/>
+							<t t-foreach="slips.keys()" t-as="dept_id">
+								<t t-set="total_val" t-value="all_col_dict"/>
+								<t t-foreach="total_val" t-as="t_v">
+									<t t-set="total_val[t_v]" t-value="0"/>
+								</t>
+								<tr>
+									<td t-att-colspan="col_total">
+										<strong><span t-esc="dept[dept_id]"/></strong>
+									</td>
+								</tr>
+								<tr t-foreach="slips[dept_id]" t-as="slip">
+									<t t-if="not slip.state =='cancel'">  
+										<td>
+											<span t-esc="slip.employee_id.no_employee"/>
+										</td>
+										<td>
+											<span t-esc="slip.employee_id.name"/>
+										</td>
+										<td>
+											<span t-esc="slip.get_total_work_days()[0]"/>
+										</td>
+										<t t-foreach="all_col_list" t-as="col">
+											<td>
+												<span t-esc="slip.get_amount_from_rule_code(col)[0]"/>
+											</td>
+										</t>
+									</t>
+								</tr>
+								<tr>
+									<td colspan="3">
+										<strong>
+											<span>Total Departamento</span>
+										</strong>
+									</td>						
+									<t t-set="total_dept" t-value="o.get_dept_total(dept_id)[0]"/>
+									<t t-foreach="all_col_list" t-as="col">
+										<th>
+											<span t-esc="total_dept[col]"/>
+										</th>
+									</t>
+								</tr>
+							</t>
+							<tr>
+								<td colspan="3">
+										<strong>
+											<span>Gran Total</span>
+										</strong>
+									</td>						
+									<t t-set="grand_total" t-value="o.get_grand_total()[0]"/>
+									<t t-foreach="all_col_list" t-as="col">
+										<th>
+											<span t-esc="grand_total[col]"/>
+										</th>
+									</t>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</t>
+		</t>
+		</t>
+	</template>
+</odoo>
