@@ -9,6 +9,8 @@
                 <field name="dest_location_id"/>
                 <field name="location_id"/>
                 <field name="warehouse_id"/>
+                <field name="garantia_empresa"/>
+                <field name="garantia_proveedor"/>
             </xpath>
          </field>
     </record>

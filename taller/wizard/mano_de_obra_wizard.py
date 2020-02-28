@@ -21,11 +21,15 @@ class ManoDeObraWizard(models.TransientModel):
             mano_de_obra_remove.unlink()
             
         for line in self.line_ids:
+            if line.mano_de_obra_line_id and line.product_uom_qty==0.0:
+                line.mano_de_obra_line_id.unlink()
+                continue 
             vals = {'product_id': line.product_id.id,'name':line.name, 
              'mecanico_id': line.mecanico_id.id, 'detalle': line.detalle,
              'product_uom_qty' : line.product_uom_qty, 'price_unit': line.price_unit, 
              'tax_id': [(6,0,line.tax_id.ids)],
-             'mano_de_obra_line_id': line.id}
+             'mano_de_obra_line_id': line.id,
+             'comision': line.comision}
             if line.product_uom:
                 vals.update({'product_uom':line.product_uom.id})
                 
@@ -50,7 +54,8 @@ class ManoDeObraWizardLine(models.TransientModel):
     tax_id = fields.Many2many('account.tax', string='Impuestos', domain=['|', ('active', '=', False), ('active', '=', True)])
     mano_de_obra_line_id = fields.Many2one("mano.deobra.ordenes.de.reparacion",'Mano de obra Line')
     detalle = fields.Char(string='Detalles')
-
+    comision = fields.Float(string="Comision")
+    
     @api.multi
     @api.onchange('product_id')
     def product_id_change(self):

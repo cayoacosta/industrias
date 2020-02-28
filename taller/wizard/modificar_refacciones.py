@@ -13,6 +13,17 @@ class ModificarRefacciones(models.TransientModel):
     @api.multi
     def action_modify(self):
         precision = self.env['decimal.precision'].precision_get('Product Unit of Measure')
+        refacciones_lines = self.line_ids.mapped('refacciones_line_id')
+        deleted_lines = self.reparacion_id.refacciones_ids - refacciones_lines
+        if deleted_lines:
+            for line in deleted_lines:
+                line.with_context(force_product_qty=line.product_uom_qty)._create_or_update_picking()
+                #line.write({'product_uom_qty' : line.product_uom_qty_new})
+                
+            #deleted_lines.write({'product_uom_qty' : 0})
+            #deleted_lines._action_launch_stock_rule()
+            deleted_lines.unlink()
+            
         for line in self.line_ids:
             if line.refacciones_line_id and float_compare(line.product_uom_qty, line.product_uom_qty_new, precision_digits=precision) == -1:
                 
@@ -52,6 +63,8 @@ class ModificarRefaccionesWizard(models.TransientModel):
     product_uom_qty = fields.Float(string='Cantidad', digits=dp.get_precision('Product Unit of Measure'))
     product_uom_qty_new = fields.Float(string='Nueva Cantidad', digits=dp.get_precision('Product Unit of Measure'), default=1.0)
     refacciones_line_id = fields.Many2one("refacciones.ordenes.de.reparacion",'Líneas de refacción')
+    price_unit = fields.Float('Precio unitario', required=True, digits=dp.get_precision('Product Price'), default=0.0)
+    tax_id = fields.Many2many('account.tax', string='Impuestos', domain=['|', ('active', '=', False), ('active', '=', True)])
     
     @api.multi
     @api.onchange('product_id')

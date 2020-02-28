@@ -13,6 +13,7 @@
 		                	<field name="product_id" force_save="1" attrs="{'readonly': [('mano_de_obra_line_id', '!=', False)]}" context="{'default_mano_de_obra':True,}"/>
 		                	<field name="name" force_save="1"/>
 		                	<field name="mecanico_id" force_save="1" attrs="{'readonly': [('mano_de_obra_line_id', '!=', False)]}" context="{'default_mecanico':1}"/>
+							<field name="comision" force_save="1" attrs="{'readonly': [('mano_de_obra_line_id', '!=', False)]}" />
 							<field name="detalle" />
 		            		<field name="product_uom_qty" />
 		            		<field name="price_unit" />

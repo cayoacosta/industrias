@@ -89,6 +89,7 @@ class ModificarOtrosTalleres(models.TransientModel):
         return {
             'partner_id': partner.id,
             'picking_type_id': self.reparacion_id.warehouse_id.in_type_id.id,
+            'operating_unit_id': self.reparacion_id.operating_unit_id.id,
             'company_id': company.id,
             'currency_id': partner.with_context(force_company=company.id).property_purchase_currency_id.id or self.env.user.company_id.currency_id.id,
             'origin': self.reparacion_id.name,

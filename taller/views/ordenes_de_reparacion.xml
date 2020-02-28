@@ -8,6 +8,7 @@
                 <field name="name" string="Número de reparación"/>
                 <field name="fecha" />
                 <field name="partner_id" />
+                <field name="cotizar_id"  />
                 <field name="operating_unit_id" />
                 <field name="vehiculo_id" />
                 <field name="state"/>
@@ -87,15 +88,18 @@
                 <group>
                     <group>
                         <field name="partner_id" required="1" domain="[('customer','=',True)]" context="{'search_default_customer':1}" options='{"always_reload": True}' 
-							    attrs="{'readonly' : [('state', 'not in',('Presupuestada'))]}"/> <!-- widget="res_partner_many2one" , 'show_address': 1, 'show_vat': True -->
+                               attrs="{'readonly' : [('state', 'not in',('Presupuestada'))]}"/> <!-- widget="res_partner_many2one" , 'show_address': 1, 'show_vat': True -->
+                        <field name="cotizar_id"  domain="[('customer','=',True)]" context="{'search_default_customer':1}" options='{"always_reload": True}' 
+                               attrs="{'readonly' : [('state', 'not in',('Presupuestada'))]}"/>
                         <field name="vehiculo_id" domain="[('partner_id','=',partner_id)]" context="{'default_partner_id':partner_id}" 
-							   attrs="{'readonly' : [('state', 'not in',('Presupuestada'))]}"/>
+                               attrs="{'readonly' : [('state', 'not in',('Presupuestada'))]}"/>
                         <!-- <field name="mecanico_id" context="{'default_mecanico':1}"/> -->
                     </group>
                     <group>
                         <field name="fecha" attrs="{'readonly' : [('state', 'not in',('Presupuestada'))]}"/>
                         <field name="total_orden_de_reparacion" />
                         <field name="orden_de_servicio_de_garantia" attrs="{'readonly' : [('state', 'not in',('Presupuestada'))]}"/>
+                        <field name="proveedor_id" attrs="{'readonly' : [('state', 'not in',('Presupuestada'))], 'invisible':[('orden_de_servicio_de_garantia', '!=', 'Pagada por el provedor')], 'required': [('orden_de_servicio_de_garantia', '=', 'Pagada por el provedor')]}"/>
                         <field name="company_id" options="{'no_create': True}" groups="base.group_multi_company"/>
                     </group>
                 </group>
@@ -246,6 +250,7 @@
                                 />
                                 <field name="name" widget="section_and_note_text"/>
                                 <field name="mecanico_id" context="{'default_mecanico':1}"/>
+                                <field name="comision" />
                                 <field
                                     name="product_uom_qty"
                                     context="{

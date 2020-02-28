@@ -13,6 +13,8 @@
 		                	<field name="product_id" force_save="1" attrs="{'readonly': [('refacciones_line_id', '!=', False)]}"/>
 		                	<field name="name" force_save="1" />
 		            		<field name="product_uom_qty" readonly="1" force_save="1"/>
+		            		<field name="price_unit" />
+		            		<field name="tax_id" widget="many2many_tags" options="{'no_create': True}" />
 		            		<field name="product_uom_qty_new" />
 	            		</tree>	
                 	</field>

@@ -14,7 +14,7 @@
     'category': '',
     'version': '12.4',
     'depends': [
-        'account', 'sale_management', 'stock', 'stock_operating_unit','purchase','sale_stock'
+        'account', 'sale_management', 'stock', 'stock_operating_unit','purchase','sale_stock','purchase_operating_unit','sale_crm'
         ],
     'data': [
         'data/sequence.xml',
@@ -33,6 +33,8 @@
         'views/account_journal_view.xml',
         'views/stock_warehouse.xml',
         'views/stock_location_view.xml',
+        'views/stock_picking_view.xml',
+        'views/crm.xml',
         'report/ordenes_de_reparacion_report.xml',
         'data/mail_template_data.xml',
         'wizard/modificar_refacciones_view.xml',

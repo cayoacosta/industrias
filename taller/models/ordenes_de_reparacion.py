@@ -4,7 +4,8 @@ from odoo import models, fields,api,_
 from odoo.addons import decimal_precision as dp
 from odoo.tools import float_compare
 from odoo.exceptions import UserError
-
+import logging
+_logger = logging.getLogger(__name__)
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 
 class OrdenesDeReparacion(models.Model):
@@ -75,16 +76,18 @@ class OrdenesDeReparacion(models.Model):
         copy=False,
         required=True,
         default=lambda self: _('New'),)
-    partner_id = fields.Many2one("res.partner",'Cliente',domain=[('customer','=',True)])
-    vehiculo_id = fields.Many2one("taller.vehiculos",'Vehiculo')
+    partner_id = fields.Many2one("res.partner",'Cliente',domain=[('customer','=',True)],required=True)
+    cotizar_id = fields.Many2one("res.partner",'Cotizar a',domain=[('customer','=',True)])
+    vehiculo_id = fields.Many2one("taller.vehiculos",'Vehiculo', required=True)
     mecanico_id = fields.Many2one("res.partner",'Mécanico',domain=[('mecanico','=',True)])
+    proveedor_id = fields.Many2one("res.partner",'Proveedor',domain=[('supplier','=',True)])
     fecha = fields.Date("Fecha")
     
     currency_id = fields.Many2one("res.currency", string="Currency", readonly=True, default=lambda self: self.env.user.company_id.currency_id)
     company_id = fields.Many2one('res.company', 'Company', default=lambda self: self.env['res.company']._company_default_get('ordenes.de.reparacion'))
-    refacciones_ids = fields.One2many('refacciones.ordenes.de.reparacion','reparacion_id', 'Refacciones', auto_join=True)
-    mano_de_obra_ids = fields.One2many('mano.deobra.ordenes.de.reparacion','reparacion_id', 'Mano de obra', auto_join=True)
-    otros_talleres_ids = fields.One2many('otros.talleres.ordenes.de.reparacion','reparacion_id', 'Otros talleres', auto_join=True)
+    refacciones_ids = fields.One2many('refacciones.ordenes.de.reparacion','reparacion_id', 'Refacciones', copy=True, auto_join=True)
+    mano_de_obra_ids = fields.One2many('mano.deobra.ordenes.de.reparacion','reparacion_id', 'Mano de obra', copy=True, auto_join=True)
+    otros_talleres_ids = fields.One2many('otros.talleres.ordenes.de.reparacion','reparacion_id', 'Otros talleres', copy=True, auto_join=True)
     
     amount_untaxed_refacciones = fields.Monetary(string='Refacciones Untaxed Amount', store=True, readonly=True, compute='_amount_all_refacciones',track_visibility='onchange', track_sequence=5)
     amount_tax_refacciones = fields.Monetary(string='Refacciones Taxes', store=True, readonly=True, compute='_amount_all_refacciones')
@@ -101,7 +104,7 @@ class OrdenesDeReparacion(models.Model):
     total_orden_de_reparacion = fields.Float("Total orden de reparación",compute="_compute_total_orden_de_reparacion", readonly=True, store=True)
     note = fields.Text('Notas')
     state = fields.Selection([('Presupuestada','Presupuestada'),('Confirmada','Confirmada'), ('Cerrada','Cerrada'), ('Cancelado','Cancelado')],string='States', default='Presupuestada')
-    orden_de_servicio_de_garantia = fields.Selection([('Pagada por el provedor', 'Pagada por el provedor'), ('Pagara por la empresa', 'Pagara por la empresa')], string='Orden de servicio de garantia')
+    orden_de_servicio_de_garantia = fields.Selection([('Pagada por el provedor', 'Pagada por el provedor'), ('Pagara por la empresa', 'Pagada por la empresa')], string='Orden de servicio de garantia')
     
     READONLY_STATES = {
         'Confirmada': [('readonly', True)],
@@ -331,10 +334,12 @@ class OrdenesDeReparacion(models.Model):
 
     @api.multi
     def action_cancelar(self):
+        for orden in self:
+            if orden.picking_ids or orden.purchase_ids:
+                raise UserError("No se puede cancelar la orden de reparación")
         self.write({'state':'Cancelado'})
         return True
-	
-    
+
     @api.multi
     def _prepare_purchase_order_line(self, line, po):
         #product_uom = line.product_uom
@@ -388,6 +393,8 @@ class OrdenesDeReparacion(models.Model):
         return {
             'partner_id': partner.id,
             'picking_type_id': self.warehouse_id.in_type_id.id,
+            'operating_unit_id': self.operating_unit_id.id,
+            'requesting_operating_unit_id': self.operating_unit_id.id,
             'company_id': company.id,
             'currency_id': partner.with_context(force_company=company.id).property_purchase_currency_id.id or self.env.user.company_id.currency_id.id,
             'origin': self.name,
@@ -426,7 +433,10 @@ class OrdenesDeReparacion(models.Model):
             warehouse  = self.env['stock.warehouse'].search([('operating_unit_id','=', self.operating_unit_id.id)], limit=1)
         if warehouse:
                 order_vals.update({'warehouse_id': warehouse.id})
-        order_vals.update({'operating_unit_id': self.operating_unit_id.id,'partner_id':self.partner_id.id, 'ordenes_id': self.id, 'orden_de_reparacion': True})
+        if self.orden_de_servicio_de_garantia == 'Pagada por el provedor':
+           order_vals.update({'operating_unit_id': self.operating_unit_id.id,'partner_id':self.proveedor_id.id, 'ordenes_id': self.id, 'orden_de_reparacion': True})
+        else:
+           order_vals.update({'operating_unit_id': self.operating_unit_id.id,'partner_id':self.partner_id.id, 'ordenes_id': self.id, 'orden_de_reparacion': True})
         new_order = order_obj.new(order_vals)
         new_order.onchange_partner_id()
         order_vals = new_order._convert_to_write({name: new_order[name] for name in new_order._cache})
@@ -434,8 +444,11 @@ class OrdenesDeReparacion(models.Model):
             team = self.env['crm.team'].browse(order_vals.get('team_id'))
             if team.operating_unit_id and team.operating_unit_id.id!=self.operating_unit_id.id:
                 order_vals.update({'team_id': False})
-                
-            
+        if self.orden_de_servicio_de_garantia == 'Pagada por el provedor':
+            order_vals.update({'diario': self.operating_unit_id.garantia_proveedor.id})
+        if self.orden_de_servicio_de_garantia == 'Pagara por la empresa':
+            order_vals.update({'diario': self.operating_unit_id.garantia_empresa.id})
+			
         order_rec = order_obj.create(order_vals)
         order_rec.onchange_tipo()
         
@@ -484,7 +497,8 @@ class OrdenesDeReparacion(models.Model):
         #wizard_obj = self.env['modificar.refacciones']
         wizard_lines = []
         for line in self.refacciones_ids:
-            wizard_lines.append({'product_id': line.product_id.id,'name':line.name, 'product_uom_qty' : line.product_uom_qty, 'product_uom_qty_new': line.product_uom_qty, 'refacciones_line_id': line.id})
+            wizard_lines.append({'product_id': line.product_id.id,'name':line.name, 'product_uom_qty' : line.product_uom_qty, 
+                                 'product_uom_qty_new': line.product_uom_qty, 'refacciones_line_id': line.id,'price_unit': line.price_unit, 'tax_id': [(6,0,line.tax_id.ids)]})
 #             wizard_rec = wizard_obj.create({'product_id': line.product_id.id, 'product_uom_qty' : line.product_uom_qty, 'product_uom_qty_new': line.product_uom_qty, 'refacciones_line_id': line.id})
 #             wizard_ids.append(wizard_rec.id)
         
@@ -501,7 +515,8 @@ class OrdenesDeReparacion(models.Model):
                                  'mecanico_id': line.mecanico_id.id,'product_uom':line.product_uom.id,
                                  'product_uom_qty' : line.product_uom_qty, 'price_unit': line.price_unit, 
                                  'tax_id': [(6,0,line.tax_id.ids)],
-                                 'mano_de_obra_line_id': line.id})
+                                 'mano_de_obra_line_id': line.id,
+                                 'comision' : line.comision})
 #             wizard_rec = wizard_obj.create({'product_id': line.product_id.id, 'product_uom_qty' : line.product_uom_qty, 'product_uom_qty_new': line.product_uom_qty, 'refacciones_line_id': line.id})
 #             wizard_ids.append(wizard_rec.id)
         
@@ -895,6 +910,7 @@ class ManoDeObraOrdenesDeReparacion(models.Model):
     name = fields.Text(string='Description', required=True)
     product_uom_qty = fields.Float(string='Cantidad', digits=dp.get_precision('Product Unit of Measure'), required=True, default=1.0)
     product_uom = fields.Many2one('uom.uom', string='Unit of Measure')
+    comision = fields.Float(string="Comision")
     price_unit = fields.Float('Precio unitario', required=True, digits=dp.get_precision('Product Price'), default=0.0)
     
     tax_id = fields.Many2many('account.tax', string='Impuestos', domain=['|', ('active', '=', False), ('active', '=', True)])
