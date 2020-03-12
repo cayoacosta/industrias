@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from odoo import models,fields
+from odoo import models,fields,_
 from dateutil.relativedelta import relativedelta
 from odoo.tools import float_is_zero
+from odoo.tools.misc import format_date
 
 class report_account_aged_receivable(models.AbstractModel):
     _inherit = "account.aged.receivable"
