@@ -12,7 +12,7 @@
     'author': "IT Admin",
     'website': "www.itadmin.com",
     'category': '',
-    'version': '12.4',
+    'version': '12.5',
     'depends': [
         'account', 'sale_management', 'stock', 'stock_operating_unit','purchase','sale_stock','purchase_operating_unit','sale_crm'
         ],
@@ -35,6 +35,9 @@
         'views/stock_location_view.xml',
         'views/stock_picking_view.xml',
         'views/crm.xml',
+        'views/account_invoice_view.xml',
+        'views/account_move_view.xml',
+        'views/stock_production_lot_view.xml',
         'report/ordenes_de_reparacion_report.xml',
         'data/mail_template_data.xml',
         'wizard/modificar_refacciones_view.xml',

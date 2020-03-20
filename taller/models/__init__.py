@@ -11,3 +11,6 @@ from . import sale_order
 from . import operating_unit
 from . import stock_warehouse
 from . import account_journal
+from . import account_invoice
+from . import account_move
+from . import stock_production_lot
