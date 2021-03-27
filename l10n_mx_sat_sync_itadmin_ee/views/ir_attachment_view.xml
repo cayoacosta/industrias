@@ -7,6 +7,7 @@
         <field name="arch" type="xml">
             <field name="create_date" position="after">
             	<field name="cfdi_uuid"/>
+            	<field name="nombre_tercero"/>
             </field>
         </field>
     </record>
@@ -42,11 +43,11 @@
     <record id="view_attachment_tree_cfdi_sat_invoices_files" model="ir.ui.view">
         <field name="model">ir.attachment</field>
         <field name="arch" type="xml">
-            <tree string="Attachments">
+            <tree string="Attachments" >
                 <field name="date_cfdi"/>
                 <field name="cfdi_uuid"/>
                 <field name="serie_folio"/>
-                <field name="cfdi_type"/>
+                <field name="cfdi_type" />
                 <field name="rfc_tercero"/>
                 <field name="nombre_tercero"/>
                 <field name="cfdi_total"/>
@@ -73,7 +74,7 @@
             </p>
         </field>
     </record>
-    
+   
     <record id="action_attachment_cfdi_supplier_invoices_tree_view" model="ir.actions.act_window.view">
         <field eval="1" name="sequence"/>
         <field name="view_mode">tree</field>
@@ -87,10 +88,10 @@
         <field name="view_id" ref="base.view_attachment_form"/>
         <field name="act_window_id" ref="action_attachment_cfdi_supplier_invoices"/>
     </record>
-        
+      
     <menuitem id="main_manu_attachment_cfdi_invoices" 
-    		  parent="account.menu_finance" 	
-    		  sequence="3"
+    		  parent="account_accountant.menu_accounting" 	
+    		  sequence="5"
     		  name="ADD"
     		  />
     		  
@@ -150,4 +151,14 @@ records.action_renmove_invoice_link()
 	    key2="client_action_multi"
 	    id="action_reconcile_vendor_cfdi_xml_bill_popup"
 	    />
+	  
+	<record id="action_compute_cfdi_uuid" model="ir.actions.server">
+    	<field name="name">UUID De XML</field>
+        <field name="type">ir.actions.server</field>
+        <field name="state">code</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="code">records._compute_cfdi_uuid()</field>
+    </record>
+	  
 </odoo>

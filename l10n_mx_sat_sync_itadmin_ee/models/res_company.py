@@ -164,9 +164,15 @@ class ResCompany(models.Model):
                     vals.update({'date_cfdi' : values.get('date_cfdi').strftime(DEFAULT_SERVER_DATE_FORMAT)})
                 if cfdi_type=='SP':
                     for uu in [uuid,uuid.lower(),uuid.upper()]:
-                        payment_exist = payment_obj.search([('l10n_mx_edi_cfdi_uuid_cusom','=',uu),('payment_type','=','inbound')],limit=1)
+                        payment_exist = payment_obj.search([('l10n_mx_edi_cfdi_uuid_cusom','=',uu),('payment_type','=','outbound')],limit=1)
                         if payment_exist:
                             vals.update({'creado_en_odoo' : True,'payment_ids':[(6,0, payment_exist.ids)]})
+                            break
+                if cfdi_type=='SE':
+                    for uu in [uuid,uuid.lower(),uuid.upper()]:
+                        invoice_exist = invoice_obj.search([('l10n_mx_edi_cfdi_uuid_cusom','=',uu),('type','=','in_refund')],limit=1)
+                        if invoice_exist:
+                            vals.update({'creado_en_odoo' : True,'payment_ids':[(6,0, invoice_exist.ids)]})
                             break
                 else:
                     for uu in [uuid,uuid.lower(),uuid.upper()]:
@@ -242,9 +248,15 @@ class ResCompany(models.Model):
                 
                 if cfdi_type=='P':
                     for uu in [uuid,uuid.lower(),uuid.upper()]:
-                        payment_exist = payment_obj.search([('l10n_mx_edi_cfdi_uuid_cusom','=',uu),('payment_type','=','outbound')],limit=1)
+                        payment_exist = payment_obj.search([('l10n_mx_edi_cfdi_uuid_cusom','=',uu),('payment_type','=','inbound')],limit=1)
                         if payment_exist:
                             vals.update({'creado_en_odoo' : True,'payment_ids':[(6,0, payment_exist.ids)]})
+                            break
+                if cfdi_type=='E':
+                    for uu in [uuid,uuid.lower(),uuid.upper()]:
+                        invoice_exist = invoice_obj.search([('l10n_mx_edi_cfdi_uuid_cusom','=',uu),('type','=','out_refund')],limit=1)
+                        if invoice_exist:
+                            vals.update({'creado_en_odoo' : True,'payment_ids':[(6,0, invoice_exist.ids)]})
                             break
                 else:
                     for uu in [uuid,uuid.lower(),uuid.upper()]:

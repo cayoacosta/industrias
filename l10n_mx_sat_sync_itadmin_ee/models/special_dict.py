@@ -1,5 +1,7 @@
 
 class CaselessDictionary(dict):
+    _description = 'CaselessDictionary'
+
     """Dictionary that enables case insensitive searching while preserving case sensitivity 
 when keys are listed, ie, via keys() or items() methods. 
 Works by storing a lowercase version of the key as the new key and stores the original key-value 

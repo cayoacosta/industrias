@@ -4,11 +4,11 @@ from odoo import models, api, fields
 
 class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
-    
+
     def _selection_product_type(self):
         product_obj = self.env['product.product']
         return product_obj._fields.get('type')._description_selection(product_obj.env)
-    
+
     l10n_mx_esignature_ids = fields.Many2many(related='company_id.l10n_mx_esignature_ids', 
         string='MX E-signature', readonly=False)
     last_cfdi_fetch_date = fields.Datetime("Last CFDI fetch date", related="company_id.last_cfdi_fetch_date", readonly=False)

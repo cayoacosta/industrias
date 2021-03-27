@@ -9,7 +9,8 @@ CFDI_XSLT_CADENA_TFD = 'l10n_mx_edi/data/xslt/3.3/cadenaoriginal_TFD_1_1.xslt'
 
 class ReportPaymentFromXMLFile(models.AbstractModel):
     _name ="report.l10n_mx_sat_sync_itadmin_ee.attachment_payment_report"
-    
+    _description = 'ReportPaymentFromXMLFile'
+
     @api.model
     def get_tax_amount_by_percent(self, lines):
         tax_amount_by_per = {}

@@ -5,6 +5,7 @@ from datetime import datetime
 
 class DescargaXDiaWizard(models.TransientModel):
     _name ='descarga.x.dia.wizard'
+    _description = 'DescargaXDiaWizard'
     
     start_date = fields.Date("Fecha de inicio")
     end_date = fields.Date("Fecha Final")

@@ -21,6 +21,7 @@ def convert_to_special_dict(d):
 
 class ReconcileVendorCfdiXmlBill(models.TransientModel):
     _name ='reconcile.vendor.cfdi.xml.bill'
+    _description = 'ReconcileVendorCfdiXmlBill'
     
     typo_de_combante = fields.Selection([('I','Facturas de clientes'),
                                          ('SI', 'Facturas de proveedor'), 
@@ -61,7 +62,7 @@ class ReconcileVendorCfdiXmlBill(models.TransientModel):
         elif self.typo_de_combante in ['SE']:
             element_tag = 'Emisor'
             invoice_type = 'in_refund'
-            payment_type = 'inbound'        
+            payment_type = 'inbound'
         for attachment in attachments:
             file_content = base64.b64decode(attachment.datas)
             if b'xmlns:schemaLocation' in file_content:

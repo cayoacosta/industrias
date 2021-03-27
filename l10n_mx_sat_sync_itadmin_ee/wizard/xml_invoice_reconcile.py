@@ -7,6 +7,7 @@ _logger = logging.getLogger(__name__)
 
 class XMLInvoiceReconcile(models.TransientModel):
     _name ='xml.invoice.reconcile'
+    _description = 'XMLInvoiceReconcile'
     
     attachment_id = fields.Many2one('ir.attachment',"Xml Attachment")
     invoice_id = fields.Many2one('account.invoice',"Invoice")
@@ -41,6 +42,7 @@ class XMLInvoiceReconcile(models.TransientModel):
                    ('28', '28 - Tarjeta de débito'), 
                    ('29', '29 - Tarjeta de servicios'), 
                    ('30', '30 - Aplicación de anticipos'), 
+                   ('31', '31 - Intermediario pagos'), 
                    ('99', '99 - Por definir'),],
         string=_('Forma de pago'),
     )
@@ -75,7 +77,8 @@ class XMLInvoiceReconcile(models.TransientModel):
     tipo_comprobante = fields.Selection(
         selection=[('I', 'Ingreso'), 
                    ('E', 'Egreso'),
-                   ('P', 'Payment'),
+                   ('P', 'Pago'),
+                   ('N', 'Nomina'),
                     ('T', 'Traslado'),],
         string=_('Tipo de comprobante'),
     )
@@ -92,13 +95,6 @@ class XMLInvoiceReconcile(models.TransientModel):
                            #'forma_pago' : self.forma_pago,
                            'l10n_mx_edi_usage' : self.uso_cfdi,
                            'l10n_mx_edi_cfdi_name' : self.attachment_id.datas_fname,
-                           #'l10n_mx_edi_cfdi_certificate_id' : self.numero_cetificado,
-                           #'fecha_certificacion' : self.fecha_certificacion,
-                           #'selo_digital_cdfi' : self.selo_digital_cdfi,
-                           #'selo_sat' : self.selo_sat,
-                           #'tipocambio' : self.tipocambio,
-                           #'tipo_comprobante': self.tipo_comprobante,
-                           #'estado_factura': 'factura_correcta',
                            })
             self.attachment_id.write({'creado_en_odoo':True, 'invoice_ids':[(6,0, [invoice.id])], 'res_id': invoice.id, 'res_model': invoice._name,'name': self.attachment_id.datas_fname})
             _logger.info("Factura conciliada")

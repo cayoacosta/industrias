@@ -32,6 +32,8 @@ TRY_COUNT = 3
 VERIFY_CERT = True
 
 class FormValues(HTMLParser):
+    _description = 'FormValues'
+
     def __init__(self):
         super().__init__()
         #HTMLParser.__init__(self)
@@ -44,6 +46,8 @@ class FormValues(HTMLParser):
                     self.values[a['name']] = a['value']
 
 class FormLoginValues(HTMLParser):
+    _description = 'FormLoginValues'
+
     def __init__(self):
         super().__init__()
         self.values = {}
@@ -58,6 +62,8 @@ class FormLoginValues(HTMLParser):
 
 
 class ImageCaptcha(HTMLParser):
+    _description = 'ImageCaptcha'
+
     def __init__(self):
         super().__init__()
         self.image = ''
@@ -70,6 +76,8 @@ class ImageCaptcha(HTMLParser):
 
 
 class Filters(object):
+    _description = 'Filters' 
+
     def __init__(self, args):
         self.date_from = args['date_from']
         self.day = args.get('day', False)
@@ -195,6 +203,8 @@ class Filters(object):
 
 
 class Invoice(HTMLParser):
+    _description = 'Invoice'
+
     START_PAGE = 'ContenedorDinamico'
     # ~ START_PAGE = 'ctl00_MainContent_ContenedorDinamico'
     URL = 'https://portalcfdi.facturaelectronica.sat.gob.mx/'
@@ -329,6 +339,8 @@ class Invoice(HTMLParser):
 
 
 class PortalSAT(object):
+    _description = 'PortalSAT'
+
     URL_MAIN = 'https://portalcfdi.facturaelectronica.sat.gob.mx/'
     HOST = 'cfdiau.sat.gob.mx'
     BROWSER = 'Mozilla/5.0 (X11; Linux x86_64; rv:55.0) Gecko/20100101 Firefox/55.0'
@@ -856,7 +868,7 @@ class PortalSAT(object):
                 invoice_content.update(data)
         return invoice_content
 
-    def search(self, opt):
+    def search(self, opt, download_option='both'):
         filters_e = ()
         filters_r = ()
 
@@ -864,7 +876,6 @@ class PortalSAT(object):
                 
         if opt['archivo_uuids']:
             return self._search_by_uuid_from_file(opt), {}
-
         if opt['tipo'] == 'e' and not opt['uuid']:
             filters_e = self._get_filters(opt, True)
             return self._search_emitidas(filters_e), {}
@@ -880,13 +891,27 @@ class PortalSAT(object):
         if opt['tipo'] == 'r' and opt['uuid']:
             filters_r = self._get_filters(opt, False)
             return self._search_by_uuid(filters_r), {}
-        
+
         #Uncomment if you need to download Receiptor/Customer invoices.
-        filters_e = self._get_filters(opt, True)
-        filters_r = self._get_filters(opt, False)
-        invoice_content_e = self._search_emitidas(filters_e)
-        invoice_content_r = self._search_recibidas(filters_r)
-        
+        invoice_content_e, invoice_content_r = {}, {}
+        if download_option=='both':
+            filters_e = self._get_filters(opt, True)
+            invoice_content_e = self._search_emitidas(filters_e)
+            filters_r = self._get_filters(opt, False)
+            invoice_content_r = self._search_recibidas(filters_r)
+        elif download_option=='supplier':
+            filters_r = self._get_filters(opt, False)
+            invoice_content_r = self._search_recibidas(filters_r)
+        elif download_option=='customer':
+            filters_e = self._get_filters(opt, True)
+            invoice_content_e = self._search_emitidas(filters_e)
+
+        #Uncomment if you need to download Receiptor/Customer invoices.
+        #filters_e = self._get_filters(opt, True)
+        #filters_r = self._get_filters(opt, False)
+        #invoice_content_e = self._search_emitidas(filters_e)
+        #invoice_content_r = self._search_recibidas(filters_r)
+       # 
         return invoice_content_r, invoice_content_e
     
 

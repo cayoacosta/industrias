@@ -33,6 +33,8 @@ YELLOW = ' { background-color: #FFFACD }'
 WHITE = ' { background-color: white }'
 
 class DlgCaptcha(QTW.QDialog):
+    _description = 'DlgCaptcha' 
+    
     TITLE = 'Empresa Libre'
     value = ''
 

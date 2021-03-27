@@ -59,6 +59,7 @@ def convert_to_special_dict(d):
 
 class CfdiInvoiceAttachment(models.TransientModel):
     _name = 'cfdi.invoice.attachment'
+    _description = 'CfdiInvoiceAttachment'
     
     @api.model
     def _default_journal(self):
@@ -82,27 +83,27 @@ class CfdiInvoiceAttachment(models.TransientModel):
         ]
         return self.env['account.journal'].search(domain, limit=1)
     
-    journal_id = fields.Many2one('account.journal', string='Customer Invoice Journal',
+    journal_id = fields.Many2one('account.journal', string='Diario de facturas venta',
         required=False,
         default=_default_journal,
         domain="[('type', 'in', ['sale'])]")
     
-    supplier_journal_id = fields.Many2one('account.journal', string='Supplier Invoice Journal',
+    supplier_journal_id = fields.Many2one('account.journal', string='Diario de facturas compras',
         required=False,
         default=_default_supplier_journal,
         domain="[('type', 'in', ['purchase'])]")
     
-    credit_journal_id = fields.Many2one('account.journal', string='Customer Credit Journal',
+    credit_journal_id = fields.Many2one('account.journal', string='Diario de notas de crédito venta',
         required=False,
         default=_default_journal,
         domain="[('type', 'in', ['sale'])]")
     
-    credit_supplier_journal_id = fields.Many2one('account.journal', string='Supplier Credit Journal',
+    credit_supplier_journal_id = fields.Many2one('account.journal', string='Diario de notas de crédito compra',
         required=False,
         default=_default_supplier_journal,
         domain="[('type', 'in', ['purchase'])]")
     
-    company_id = fields.Many2one('res.company', string='Company', 
+    company_id = fields.Many2one('res.company', string='Compañia', 
         required=True, readonly=True, 
         default=lambda self: self.env.user.company_id)
     
@@ -128,7 +129,7 @@ class CfdiInvoiceAttachment(models.TransientModel):
             for attachment in attachments:
                 cfdi_uuid = attachment.cfdi_uuid
                 if not cfdi_uuid:
-                    not_imported_attachment.update({attachment.name:'Not valid Attachment'})
+                    not_imported_attachment.update({attachment.name:'Archivo adjunto no válido'})
                     continue
                 if cfdi_uuid in exist_invoice_uuids:
                     existed_attachment.append(attachment.name)
@@ -297,7 +298,7 @@ class CfdiInvoiceAttachment(models.TransientModel):
             'company_id' : self.env.user.company_id.id,
             'journal_id' : journal.id,
             }
-        
+
         currency_code = data.get('Comprobante',{}).get('@Moneda','MXN')
         currency = self.env['res.currency'].search([('name','=',currency_code)], limit=1)
         if not currency:
@@ -329,6 +330,16 @@ class CfdiInvoiceAttachment(models.TransientModel):
             taxes = line.get('Impuestos',{}).get('Traslados',{}).get('Traslado')
             tax_ids = []
             if taxes:
+                if type(taxes)!=list:
+                    taxes = [taxes]
+                else:
+                    taxes = []
+                no_imp_tras = len(taxes)
+                if line.get('Impuestos',{}).get('Retenciones',{}):
+                    other_taxes = line.get('Impuestos',{}).get('Retenciones',{}).get('Retencion')
+                    if type(other_taxes)!=list:
+                        other_taxes = [other_taxes]
+                    taxes.extend(other_taxes)
                 if type(taxes)!=list:
                     taxes = [taxes]
                 tax_ids  = self.get_tax_from_codes(taxes,'sale')
@@ -513,6 +524,16 @@ class CfdiInvoiceAttachment(models.TransientModel):
             taxes = line.get('Impuestos',{}).get('Traslados',{}).get('Traslado')
             tax_ids  = []
             if taxes:
+                if type(taxes)!=list:
+                    taxes = [taxes]
+                else:
+                    taxes = []
+                no_imp_tras = len(taxes)
+                if line.get('Impuestos',{}).get('Retenciones',{}):
+                    other_taxes = line.get('Impuestos',{}).get('Retenciones',{}).get('Retencion')
+                    if type(other_taxes)!=list:
+                        other_taxes = [other_taxes]
+                    taxes.extend(other_taxes)
                 if type(taxes)!=list:
                     taxes = [taxes]
                 tax_ids  = self.get_tax_from_codes(taxes,'purchase')
@@ -700,6 +721,16 @@ class CfdiInvoiceAttachment(models.TransientModel):
             if taxes:
                 if type(taxes)!=list:
                     taxes = [taxes]
+                else:
+                    taxes = []
+                no_imp_tras = len(taxes)
+                if line.get('Impuestos',{}).get('Retenciones',{}):
+                    other_taxes = line.get('Impuestos',{}).get('Retenciones',{}).get('Retencion')
+                    if type(other_taxes)!=list:
+                        other_taxes = [other_taxes]
+                    taxes.extend(other_taxes)
+                if type(taxes)!=list:
+                    taxes = [taxes]
                 tax_ids  = self.get_tax_from_codes(taxes,'sale')
 #                 tax_ids = []
 #                 if taxes:
@@ -738,8 +769,8 @@ class CfdiInvoiceAttachment(models.TransientModel):
                 discount_percent = discount_amount*100.0/(unit_price*qty)
             else:
                 discount_percent=0.0
-            
-            line_data = invoice_line_obj.default_get(fields)    
+
+            line_data = invoice_line_obj.default_get(fields)
             line_data.update({
                             'invoice_id': invoice_exist.id,
                             'product_id':product_exist.id,
@@ -880,8 +911,19 @@ class CfdiInvoiceAttachment(models.TransientModel):
             #clave_unidad = line.get('@ClaveUnidad')
             #clave_producto = line.get('@ClaveProdServ')
             taxes = line.get('Impuestos',{}).get('Traslados',{}).get('Traslado')
-            if type(taxes)!=list:
-                taxes = [taxes]
+            if taxes:
+                if type(taxes)!=list:
+                    taxes = [taxes]
+                else:
+                    taxes = []
+                no_imp_tras = len(taxes)
+                if line.get('Impuestos',{}).get('Retenciones',{}):
+                    other_taxes = line.get('Impuestos',{}).get('Retenciones',{}).get('Retencion')
+                    if type(other_taxes)!=list:
+                        other_taxes = [other_taxes]
+                    taxes.extend(other_taxes)
+                if type(taxes)!=list:
+                    taxes = [taxes]
             tax_ids  = self.get_tax_from_codes(taxes or [],'purchase')
 #             tax_ids = []
 #             if taxes:
@@ -970,8 +1012,11 @@ class CfdiInvoiceAttachment(models.TransientModel):
         tax_obj = self.env['account.tax']
         tax_ids = []
         for tax in taxes:
-            amount_tasa = float(tax.get('@TasaOCuota'))*100
-            tasa = str(amount_tasa)
+            if tax.get('@TasaOCuota'):
+               amount_tasa = float(tax.get('@TasaOCuota'))*100
+               tasa = str(amount_tasa)
+            else:
+               tasa = str(0)
             tax_exist = tax_obj.search([('type_tax_use','=',tax_type),('l10n_mx_cfdi_tax_type','=',tax.get('@TipoFactor')),('amount', '=', tasa)],limit=1)
             if not tax_exist:
                 raise Warning("La factura contiene impuestos que no han sido configurados. Por favor configure los impuestos primero")
@@ -1047,6 +1092,16 @@ class CfdiInvoiceAttachment(models.TransientModel):
             if taxes:
                 if type(taxes)!=list:
                     taxes = [taxes]
+                else:
+                    taxes = []
+                no_imp_tras = len(taxes)
+                if line.get('Impuestos',{}).get('Retenciones',{}):
+                    other_taxes = line.get('Impuestos',{}).get('Retenciones',{}).get('Retencion')
+                    if type(other_taxes)!=list:
+                        other_taxes = [other_taxes]
+                    taxes.extend(other_taxes)
+                if type(taxes)!=list:
+                    taxes = [taxes]
                 tax_ids  = self.get_tax_from_codes(taxes,'sale')
 #                 tax_ids = []
 #                 if taxes:
@@ -1111,10 +1166,10 @@ class CfdiInvoiceAttachment(models.TransientModel):
         except Exception as e:
             data = {}
             raise Warning(str(e))
-        
+
         data = CaselessDictionary(data)
         data = convert_to_special_dict(data)
-        
+
         purchase_obj = self.env['purchase.order']
         purchase_line_obj = self.env['purchase.order.line']
         #product_obj = self.env['product.product']
@@ -1179,6 +1234,16 @@ class CfdiInvoiceAttachment(models.TransientModel):
             taxes = line.get('Impuestos',{}).get('Traslados',{}).get('Traslado')
             tax_ids = []
             if taxes:
+                if type(taxes)!=list:
+                    taxes = [taxes]
+                else:
+                    taxes = []
+                no_imp_tras = len(taxes)
+                if line.get('Impuestos',{}).get('Retenciones',{}):
+                    other_taxes = line.get('Impuestos',{}).get('Retenciones',{}).get('Retencion')
+                    if type(other_taxes)!=list:
+                        other_taxes = [other_taxes]
+                    taxes.extend(other_taxes)
                 if type(taxes)!=list:
                     taxes = [taxes]
                 tax_ids  = self.get_tax_from_codes(taxes,'purchase')

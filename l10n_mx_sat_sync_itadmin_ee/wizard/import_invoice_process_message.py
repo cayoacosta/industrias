@@ -3,6 +3,7 @@ from odoo import models,fields,api
 
 class ImportInvoiceProcessMessage(models.TransientModel):
     _name ='import.invoice.process.message'
+    _description = 'ImportInvoiceProcessMessage'
     
     name = fields.Char("Name")
     
@@ -24,7 +25,7 @@ class ImportInvoiceProcessMessage(models.TransientModel):
             if context.get('existed_attachment'):
                 res['arch'] = res['arch'].replace("existed_attachment_content",context.get('existed_attachment'))
             else:
-                res['arch'] = res['arch'].replace("existed_attachment_content",'')    
+                res['arch'] = res['arch'].replace("existed_attachment_content",'')
             if context.get('not_imported_attachment'):
                 res['arch'] = res['arch'].replace("not_imported_attachment_content",context.get('not_imported_attachment'))
             else:

@@ -19,6 +19,7 @@ TYPE_CFDI22_TO_CFDI33 = {
 
 class AttachXmlsWizard(models.TransientModel):
     _name = 'multi.file.attach.xmls.wizard'
+    _description = 'AttachXmlsWizard'
     
     dragndrop = fields.Char()
 
